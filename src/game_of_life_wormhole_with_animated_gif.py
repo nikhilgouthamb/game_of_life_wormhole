@@ -331,4 +331,39 @@ for it, g in results.items():
     live_count = np.sum(g)
     print(f"Iteration {it}: saved '{it}.png' with {live_count} live cells.")
 
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Animate All Frames as a GIF (for debugging)
+# ─────────────────────────────────────────────────────────────────────────────
+
+# We’ve already run:
+#   for it in range(1, max_iter+1):
+#       grid = step(grid)
+#       if it in targets: results[it] = grid.copy()
+#
+# Instead, let’s also keep every single frame in a list of PIL images.
+
+# (A) Re-run the simulation, collecting all 1…max_iter frames as PIL Images
+all_frames: list[Image.Image] = []
+grid = grid0.copy()
+for it in range(1, max_iter + 1):
+    grid = step(grid)
+    # Convert this generation (grid) into a black/white RGB image:
+    arr = np.zeros((H, W, 3), dtype=np.uint8)
+    arr[grid == 1] = [255, 255, 255]
+    pil_img = Image.fromarray(arr)
+    all_frames.append(pil_img)
+
+# (B) Save the full sequence as an animated GIF
+gif_path = os.path.join(OUTPUT_DIR, "animation.gif")
+# Save the first frame, then append the rest. Use duration=100ms per frame (tweak as needed).
+all_frames[0].save(
+    gif_path,
+    save_all=True,
+    append_images=all_frames[1:], 
+    duration=100,    # milliseconds between frames
+    loop=0           # loop forever
+)
+print(f"Saved full animation to '{gif_path}' (containing {len(all_frames)} frames).")
+
 print("Step 6 complete: all target frames are in 'outputs/'.")
